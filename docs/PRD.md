@@ -3,9 +3,10 @@
 | | |
 |---|---|
 | **Nama Produk** | SoalPintar SD |
-| **Versi Dokumen** | 0.1 (Draft) |
-| **Status** | Draft untuk ditinjau |
+| **Versi Dokumen** | 0.2 |
+| **Status** | Diselaraskan dengan implementasi saat ini |
 | **Pemilik Produk** | Tim SoalPintar SD |
+| **Terakhir diperbarui** | 2026-09-10 |
 
 ## 1. Latar Belakang & Masalah
 
@@ -46,36 +47,121 @@ Guru dan orang tua siswa Sekolah Dasar (SD) di Indonesia sering menghadapi kenda
 ### 4.1 Fitur Inti (Must-Have — Versi 1)
 
 1. **Pembuatan Soal Berbasis AI**
-   - Guru/orang tua memasukkan parameter: mata pelajaran, kelas, topik/bab, tingkat kesulitan, jumlah soal, jenis soal (pilihan ganda, isian singkat, benar/salah).
-   - Sistem menghasilkan draf soal beserta kunci jawaban dan penjelasan (pembahasan) yang dapat ditinjau/diedit sebelum disimpan.
+   - Guru/orang tua memasukkan parameter: mata pelajaran, kelas, topik/bab (satu bab atau rentang bab), tingkat kesulitan, komposisi jumlah soal per jenis, dan bobot skor per jenis.
+   - Jenis soal yang didukung: **pilihan ganda**, **isian singkat**, **esai/soal cerita** (benar/salah opsional pada seed/template).
+   - Sistem menghasilkan draf soal beserta kunci jawaban dan penjelasan yang dapat ditinjau sebelum disimpan.
+   - Opsional: soal dapat menyematkan **gambar** (lihat F8).
 2. **Bank Soal & Manajemen Konten**
    - Simpan, kategorikan (mapel/kelas/topik/kesulitan), cari, edit, dan hapus soal.
-   - Impor/ekspor soal (misalnya dari/ke format CSV atau dokumen).
+   - Setiap soal menyimpan `source` (AI/Manual), `weight` (bobot), dan opsional `figureId` (gambar).
 3. **Manajemen Kelas & Penugasan**
-   - Guru membuat kelas/rombongan belajar dan menambahkan siswa.
-   - Guru membuat "paket latihan" (kumpulan soal) dan menugaskannya ke kelas/siswa tertentu, dengan tenggat waktu opsional.
+   - Guru membuat kelas/rombongan belajar dengan **kode kelas (joinCode)** agar siswa dapat bergabung.
+   - Guru membuat penugasan dari bank soal ke kelas, dengan tenggat opsional.
 4. **Pengerjaan Latihan oleh Siswa**
-   - Antarmuka ramah anak untuk mengerjakan soal (satu per satu atau dalam satu halaman), dengan navigasi mudah.
-   - Timer opsional untuk latihan bergaya kuis.
+   - Login siswa via **username + PIN**.
+   - Antarmuka latihan (praktik mandiri dari bank soal milik guru/ortu) dan pengerjaan **tugas kelas**.
+   - Untuk esai/isian: dukungan **kanvas stylus/tulisan tangan** dengan OCR (Tesseract lokal dan/atau Gemini Vision bila dikonfigurasi).
 5. **Koreksi Otomatis & Umpan Balik**
-   - Penilaian otomatis untuk pilihan ganda, benar/salah, dan isian singkat yang cocok dengan pola jawaban.
-   - Penjelasan jawaban ditampilkan setelah siswa submit.
-6. **Laporan & Progres**
-   - Dashboard guru: rekap nilai per siswa, per kelas, per topik (untuk mengidentifikasi topik yang lemah).
-   - Dashboard orang tua/siswa: riwayat latihan, skor, dan topik yang perlu diperkuat.
+   - Penilaian otomatis untuk pilihan ganda dan isian singkat (normalisasi teks).
+   - Skor berbobot: benar semua = 100; kesalahan mengurangi proporsi bobot soal.
+   - Penjelasan jawaban ditampilkan setelah submit.
+6. **Laporan & Progres** *(sebagian)*
+   - Dasar skor per submission tersedia; dashboard analitik kelas/topik masih dapat diperdalam.
 7. **Autentikasi & Peran Pengguna**
-   - Pendaftaran/login untuk guru dan orang tua.
-   - Akun siswa sederhana (dapat dibuat oleh guru/orang tua, tanpa memerlukan email untuk siswa usia dini).
+   - Pendaftaran/login email+password untuk guru dan orang tua.
+   - Akun siswa tanpa email (username + PIN); registrasi siswa dengan kode kelas.
+8. **Pustaka Materi Bersama & User-Driven RAG** *(sudah diimplementasikan — sebelumnya Nice-to-Have)*
+   - Guru/orang tua mengunggah PDF atau gambar (JPG/PNG/WEBP) sebagai referensi generate soal.
+   - Deduplikasi lintas pengguna via `contentHash` (SHA-256); dokumen yang sama tidak diunggah ulang.
+   - Teks diekstrak (`pdf-parse` / OCR Tesseract), di-chunk, dipakai sebagai konteks LLM bersama RAG kurikulum.
+   - Storage lokal `uploads/` pada MVP (bukan wajib cloud).
+9. **Gambar pada Soal** *(sebagian dari multimedia — sudah diimplementasikan)*
+   - Saat tinjau draf generate: pilih crop otomatis dari dokumen referensi (**Level 2**: render halaman + deteksi region), **atau unggah gambar manual**.
+   - Gambar ditampilkan di latihan praktik dan tugas siswa.
 
-### 4.2 Fitur Tambahan (Nice-to-Have — Versi Berikutnya)
+### 4.2 Fitur Tambahan (Nice-to-Have — Belum / Sebagian)
 
 - Gamifikasi (lencana, papan peringkat kelas, streak harian).
-- Rekomendasi latihan adaptif berdasarkan kelemahan siswa (personalisasi berbasis riwayat jawaban).
-- Mode latihan offline / cetak PDF soal untuk dikerjakan di kertas.
-- Dukungan multimedia pada soal (gambar, audio untuk soal literasi/mendengarkan).
-- Integrasi dengan Kurikulum Merdeka secara lebih rinci (capaian pembelajaran per fase).
-- Aplikasi mobile (Android/iOS) native.
-- Manajemen sekolah multi-guru/multi-kelas dengan admin sekolah.
+- Rekomendasi latihan adaptif berdasarkan kelemahan siswa.
+- Mode latihan offline / cetak PDF soal.
+- **Audio** pada soal (multimedia penuh); gambar sudah tersedia (lihat F8/F9).
+- Integrasi Kurikulum Merdeka lebih rinci (CP/ATP per fase) — RAG kurikulum dasar sudah ada.
+- Aplikasi mobile native.
+- Manajemen sekolah multi-tenant dengan admin sekolah.
+- Generate gambar AI otomatis untuk soal (ditunda; preferensi: crop materi + upload manual).
+- Crop manual interaktif (gambar rectangle) di atas preview halaman — peningkatan UX di atas auto-detect.
+- Dashboard laporan kelas/topik yang lebih lengkap (heatmap kelemahan, filter rentang waktu).
+- Impor/ekspor bank soal CSV.
+
+#### User Story (materi & gambar — sudah relevan di versi ini)
+- Sebagai **guru**, saya ingin mengunggah LKS/buku paket agar soal AI merujuk materi yang diajarkan.
+- Sebagai **guru**, saya ingin memilih atau mengunggah gambar untuk soal agar siswa melihat diagram/ilustrasi yang sama dengan buku.
+- Sebagai **orang tua**, saya ingin memakai pustaka materi bersama tanpa mengunggah ulang file yang sudah ada.
+- Sebagai **siswa**, saya ingin menjawab esai dengan stylus dan melihat gambar pada soal jika guru menyematkannya.
+
+## 4b. Acceptance Criteria per Fitur Inti
+
+### F1 — Pembuatan Soal Berbasis AI
+- [x] Guru/orang tua dapat memilih mata pelajaran, kelas (1–6), bab/rentang bab, tingkat kesulitan, dan komposisi jumlah soal (PG/isian/esai, total 1–20).
+- [x] Sistem mengembalikan draf soal (target beberapa detik; tergantung LLM).
+- [x] Setiap soal draf wajib memiliki: teks soal, pilihan (jika PG), kunci/jawaban model, dan pembahasan; bobot per jenis soal dapat diatur.
+- [ ] Guru dapat mengedit teks soal, pilihan, kunci, dan pembahasan inline sebelum menyimpan *(sebagian: tinjau + simpan; editor penuh masih bisa diperdalam)*.
+- [x] Guru dapat menyimpan soal per item atau semua dari draf.
+- [x] Jika LLM gagal, ada jalur fallback soal template.
+- [x] Soal tidak tersimpan tanpa aksi eksplisit "Simpan".
+
+### F2 — Bank Soal & Manajemen Konten
+- [x] Daftar/filter bank soal dasar tersedia.
+- [ ] Edit soal tersimpan end-to-end di UI (endpoint PUT ada; kelengkapan UX bervariasi).
+- [ ] Hapus soal dengan konfirmasi di UI.
+- [x] Kolom `source` (AI/Manual) pada model data.
+- [x] Pencarian berdasarkan kata kunci prompt (API filter `search`).
+
+### F3 — Manajemen Kelas & Penugasan
+- [x] Guru dapat membuat kelas (nama, tingkat) + `joinCode`.
+- [x] Siswa dapat bergabung/daftar dengan kode kelas.
+- [x] Guru dapat membuat penugasan dari bank soal ke kelas.
+- [x] Tenggat waktu opsional.
+- [x] Siswa melihat daftar tugas & mengerjakan; status submission tersimpan.
+
+### F4 — Pengerjaan Latihan oleh Siswa
+- [x] Login username + PIN.
+- [x] Daftar penugasan untuk kelas siswa.
+- [x] Latihan praktik mandiri dari bank soal pembuat.
+- [x] Jawaban esai/isian via teks dan/atau kanvas tulisan tangan + OCR.
+- [x] Tampilan responsif untuk tablet (fokus LAN/WSL didukung).
+
+### F5 — Koreksi Otomatis & Umpan Balik
+- [x] Benar/salah + pembahasan setelah selesai (praktik/tugas).
+- [x] Skor berbobot (total bobot → skala 100).
+- [x] Isian singkat dinilai case-insensitive / trim.
+
+### F6 — Laporan & Progres
+- [ ] Dashboard guru rekap per siswa/topik lengkap.
+- [ ] Topik dengan kesalahan tertinggi di kelas.
+- [ ] Dashboard ortu riwayat anak end-to-end (tautkan anak masih perlu penguatan).
+- [ ] Filter laporan rentang waktu.
+
+### F7 — Autentikasi & Peran
+- [x] Guru/ortu daftar & login email+password (hash bcrypt).
+- [x] Proteksi rute yang memerlukan login.
+- [x] Isolasi data kelas antar guru (dasar).
+- [ ] Ortu hanya melihat anak terhubung — sebagian; tautkan anak perlu verifikasi produk.
+
+### F8 — Pustaka Materi & User-Driven RAG
+- [x] Upload PDF/JPG/PNG/WEBP; status PROCESSING → READY/FAILED.
+- [x] Ekstraksi teks + chunk; dipakai saat generate dengan `materialId`.
+- [x] Pustaka bersama guru & ortu; dedupe `contentHash`.
+- [x] Hanya pengunggah yang boleh hapus dokumen.
+- [x] Storage lokal `uploads/` (MVP).
+
+### F9 — Gambar pada Soal
+- [x] Auto-crop region dari PDF/gambar materi (Level 2: MuPDF render + deteksi region).
+- [x] Pilih gambar terkait di UI draf generate (ranking teks halaman vs prompt).
+- [x] Unggah gambar manual per soal saat tinjau draf (`POST /api/figures/upload`).
+- [x] Gambar tampil di praktik & tugas siswa (`/api/figures/:id`).
+- [ ] Crop manual drag-rectangle di preview halaman.
+- [ ] Generate gambar AI otomatis.
 
 ## 5. User Stories Utama
 
@@ -92,6 +178,56 @@ Guru dan orang tua siswa Sekolah Dasar (SD) di Indonesia sering menghadapi kenda
 - **Tingkat penyelesaian latihan siswa**: persentase penugasan latihan yang diselesaikan siswa tepat waktu.
 - **Retensi pengguna**: persentase guru/orang tua aktif yang kembali menggunakan aplikasi dalam 30 hari.
 - **Kepuasan pengguna**: skor kepuasan (survei sederhana) dari guru dan orang tua terhadap kualitas soal yang dihasilkan.
+
+## 6b. Konten Mata Pelajaran — Topik/Bab per Kelas (Seed Data Awal)
+
+Daftar ini digunakan sebagai data awal (`prisma/seed.ts`) dan sebagai referensi parameter topik pada prompt LLM. Berdasarkan **Kurikulum Merdeka** jenjang SD.
+
+### Matematika
+
+| Kelas | Topik |
+|---|---|
+| 1 | Bilangan 1–10, Penjumlahan & Pengurangan Dasar, Mengenal Bentuk Bangun Datar, Pengukuran Panjang Sederhana |
+| 2 | Bilangan sampai 100, Penjumlahan & Pengurangan 2 Angka, Perkalian Dasar (1–5), Mengenal Waktu (jam) |
+| 3 | Bilangan sampai 1.000, Perkalian & Pembagian (1–10), Pecahan Sederhana (½, ⅓, ¼), Keliling Bangun Datar |
+| 4 | Bilangan sampai 10.000, Pecahan Biasa & Campuran, Desimal, KPK & FPB, Luas Bangun Datar |
+| 5 | Bilangan Bulat Negatif, Pecahan & Operasinya, Persen, Skala & Perbandingan, Volume Kubus & Balok |
+| 6 | Operasi Hitung Campuran, Lingkaran (luas & keliling), Statistika Sederhana (rata-rata, modus), Pola Bilangan |
+
+### Bahasa Indonesia
+
+| Kelas | Topik |
+|---|---|
+| 1 | Mengenal Huruf & Membaca Suku Kata, Kalimat Sederhana, Menulis Nama & Alamat |
+| 2 | Membaca Teks Pendek, Kosakata Sehari-hari, Menulis Kalimat Lengkap, Huruf Kapital & Tanda Titik |
+| 3 | Teks Narasi Sederhana, Kalimat Tanya & Perintah, Sinonim & Antonim, Paragraf |
+| 4 | Teks Deskripsi & Eksposisi, Kalimat Majemuk, Ejaan (EYD/PUEBI), Membaca Pemahaman |
+| 5 | Teks Laporan & Persuasi, Pantun, Kata Baku & Tidak Baku, Ide Pokok Paragraf |
+| 6 | Pidato & Teks Argumentasi, Majas Sederhana, Surat Resmi, Ringkasan & Parafrase |
+
+### IPAS (Ilmu Pengetahuan Alam dan Sosial)
+
+| Kelas | Topik |
+|---|---|
+| 1 | Tubuh Manusia (anggota tubuh & fungsinya), Lingkungan Sekitar, Siang & Malam, Cuaca |
+| 2 | Hewan & Tumbuhan di Sekitar Kita, Benda Padat/Cair/Gas, Kondisi Lingkungan, Keluarga & Masyarakat |
+| 3 | Pertumbuhan Makhluk Hidup, Sumber Daya Alam, Perubahan Cuaca & Musim, Peta Lingkungan Sekitar |
+| 4 | Ekosistem & Rantai Makanan, Gaya & Gerak, Perubahan Wujud Benda, Keragaman Suku & Budaya Indonesia |
+| 5 | Sistem Organ Manusia, Listrik & Magnet, Perkembangbiakan Makhluk Hidup, Sejarah Kerajaan Nusantara |
+| 6 | Tata Surya, Perpindahan Panas, Bioteknologi Sederhana, Proklamasi Kemerdekaan & Kehidupan Berbangsa |
+
+### PPKn
+
+| Kelas | Topik |
+|---|---|
+| 1 | Aturan di Rumah & Sekolah, Kebersamaan dalam Keberagaman, Simbol Negara (Garuda Pancasila) |
+| 2 | Hak & Kewajiban Siswa, Hidup Rukun, Tata Tertib & Disiplin |
+| 3 | Makna Pancasila, Keberagaman Budaya, Gotong Royong |
+| 4 | Hak & Kewajiban Warga Negara, Persatuan & Kesatuan, Norma dalam Masyarakat |
+| 5 | Nilai-nilai Pancasila dalam Kehidupan, Keberagaman Ras & Agama, NKRI |
+| 6 | Demokrasi & Pemilu Sederhana, Hak Asasi Manusia, Peran Indonesia di Tingkat ASEAN |
+
+> Catatan: daftar topik ini bersifat representatif, bukan exhaustive. Tim konten dapat menambah/mengubah topik melalui antarmuka admin atau langsung di database tanpa perubahan kode.
 
 ## 7. Batasan & Asumsi
 
@@ -111,12 +247,25 @@ Guru dan orang tua siswa Sekolah Dasar (SD) di Indonesia sering menghadapi kenda
 
 ## 9. Fase Pengembangan (Roadmap Kualitatif)
 
-Alih-alih target waktu kalender, pengembangan dibagi menjadi fase berdasarkan kompleksitas dan dependensi:
+1. **Fase 1 — Fondasi**: autentikasi, mapel/kelas/topik, model bank soal. *(sebagian besar selesai)*
+2. **Fase 2 — Pembuatan Soal AI**: generate + tinjau/simpan, RAG kurikulum, komposisi jenis & bobot. *(selesai / iterasi)*
+3. **Fase 3 — Penugasan & Pengerjaan Siswa**: tugas kelas, login PIN, praktik mandiri, stylus/OCR. *(selesai / iterasi)*
+4. **Fase 4 — Materi & Gambar Soal**: pustaka bersama, User-Driven RAG, crop Level 2, upload gambar manual. *(selesai MVP)*
+5. **Fase 5 — Laporan & Penyempurnaan**: dashboard analitik kelas/ortu, gamifikasi ringan, ekspor/impor, crop manual UI, hardening.
 
-1. **Fase 1 — Fondasi**: autentikasi, manajemen mata pelajaran/kelas/topik, model data bank soal.
-2. **Fase 2 — Pembuatan Soal AI**: integrasi layanan AI untuk generate soal + alur tinjau/edit.
-3. **Fase 3 — Penugasan & Pengerjaan Siswa**: alur guru menugaskan latihan, antarmuka siswa mengerjakan soal.
-4. **Fase 4 — Koreksi Otomatis & Laporan**: penilaian otomatis, dashboard progres guru/orang tua.
-5. **Fase 5 — Penyempurnaan**: gamifikasi ringan, ekspor/impor soal, peningkatan UX berdasarkan umpan balik pengguna.
+Rincian teknis: [`TSD.md`](./TSD.md).
 
-Rincian teknis setiap fase dijelaskan lebih lanjut pada [`TSD.md`](./TSD.md).
+## 10. Catatan Selisih vs PRD 0.1
+
+| Item di PRD 0.1 | Status implementasi |
+|---|---|
+| Upload materi (Nice-to-Have V2) | **Naik ke inti** — sudah ada |
+| Multimedia soal (gambar/audio) | **Gambar MVP ada**; audio belum |
+| Cloud storage wajib (S3/Blob) | Diganti **storage lokal** di MVP |
+| OCR materi via Vision LLM | Materi memakai **Tesseract**; Vision dipakai jalur **tulisan tangan jawaban** |
+| Impor/ekspor CSV | Belum |
+| Timer kuis | Belum |
+| Dashboard laporan lengkap | Belum / sebagian |
+| Jenis soal ESSAY + bobot | **Ada** (tidak eksplisit di PRD 0.1) |
+| Kode kelas / daftar siswa mandiri | **Ada** |
+| Dedup materi lintas user | **Ada** |

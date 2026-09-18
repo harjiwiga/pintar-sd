@@ -1,0 +1,91 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 40 33% 98%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 168 76% 29%;
+    --primary-foreground: 160 100% 97%;
+    --secondary: 40 30% 94%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 40 20% 94%;
+    --muted-foreground: 215 16% 42%;
+    --accent: 38 92% 50%;
+    --accent-foreground: 28 80% 16%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 40 18% 88%;
+    --input: 40 18% 88%;
+    --ring: 168 76% 29%;
+    --radius: 0.85rem;
+    --sidebar: 165 40% 12%;
+    --sidebar-foreground: 160 20% 92%;
+    --sidebar-muted: 165 20% 70%;
+    --sidebar-accent: 168 50% 18%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    @apply scroll-smooth antialiased;
+  }
+
+  body {
+    @apply min-w-0 bg-background text-foreground;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 100% -20%, hsl(168 76% 29% / 0.07), transparent),
+      radial-gradient(ellipse 60% 40% at 0% 100%, hsl(38 92% 50% / 0.08), transparent);
+    background-attachment: fixed;
+  }
+
+  input,
+  select,
+  textarea {
+    @apply outline-none;
+  }
+}
+
+@layer components {
+  .field {
+    @apply flex w-full flex-col gap-1.5;
+  }
+
+  .field-label {
+    @apply text-sm font-medium text-foreground;
+  }
+
+  .field-input {
+    @apply h-11 w-full rounded-xl border border-input bg-white px-3.5 text-sm text-foreground shadow-sm transition
+      placeholder:text-muted-foreground
+      focus:border-primary focus:ring-4 focus:ring-primary/15
+      disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  textarea.field-input {
+    @apply h-auto min-h-[6.5rem] py-3 leading-6;
+  }
+
+  .surface {
+    @apply rounded-2xl border border-border/80 bg-card shadow-[0_1px_2px_rgba(16,24,40,0.04),0_8px_24px_rgba(16,24,40,0.04)];
+  }
+
+  .essay-pad {
+    background-color: #fffef8;
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent,
+      transparent 31px,
+      hsl(var(--border)) 32px
+    );
+  }
+}

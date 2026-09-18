@@ -1,0 +1,269 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ────────────────────────────────────────────────────
+
+enum Role {
+  TEACHER
+  PARENT
+  ADMIN
+}
+
+enum QuestionType {
+  MULTIPLE_CHOICE
+  TRUE_FALSE
+  SHORT_ANSWER
+  ESSAY
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum QuestionSource {
+  AI_GENERATED
+  MANUAL
+}
+
+enum LLMLogStatus {
+  SUCCESS
+  FAILED
+  FALLBACK
+}
+
+enum MaterialStatus {
+  PROCESSING
+  READY
+  FAILED
+}
+
+// ─── Models ───────────────────────────────────────────────────
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String   // bcrypt hashed
+  role      Role
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  classes   ClassRoom[]      @relation("TeacherClasses")
+  children  StudentProfile[] @relation("ParentChildren")
+  questions Question[]
+  materials UserMaterial[]
+}
+
+model StudentProfile {
+  id        String  @id @default(cuid())
+  name      String
+  grade     Int     // 1..6
+  username  String  @unique // auto-generated, e.g. "budi-kelas4a"
+  pin       String          // bcrypt hashed 4-digit PIN
+  avatarKey String?
+  parentId  String?
+  parent    User?           @relation("ParentChildren", fields: [parentId], references: [id])
+  classId   String?
+  classRoom ClassRoom?      @relation(fields: [classId], references: [id])
+  createdAt DateTime        @default(now())
+
+  submissions Submission[]
+}
+
+model ClassRoom {
+  id        String   @id @default(cuid())
+  name      String   // e.g. "Kelas 4A"
+  grade     Int
+  joinCode  String   @unique
+  teacherId String
+  teacher   User     @relation("TeacherClasses", fields: [teacherId], references: [id])
+  createdAt DateTime @default(now())
+
+  students    StudentProfile[]
+  assignments Assignment[]
+}
+
+model Subject {
+  id   String  @id @default(cuid())
+  name String  @unique // Matematika, Bahasa Indonesia, IPAS, PPKn
+
+  topics Topic[]
+}
+
+model Topic {
+  id        String  @id @default(cuid())
+  name      String  // e.g. "Pecahan Sederhana"
+  grade     Int     // 1..6
+  subjectId String
+  subject   Subject @relation(fields: [subjectId], references: [id])
+
+  questions Question[]
+
+  @@unique([name, grade, subjectId])
+}
+
+model Question {
+  id          String         @id @default(cuid())
+  type        QuestionType
+  prompt      String
+  choices     Json?          // [{ key: "A", text: "..." }, ...]  — only MULTIPLE_CHOICE
+  correctKey  String?        // "A"/"B"/"C"/"D" or "BENAR"/"SALAH"
+  correctText String?        // expected answer for SHORT_ANSWER / ESSAY
+  explanation String
+  difficulty  Difficulty
+  topicId     String
+  topic       Topic          @relation(fields: [topicId], references: [id])
+  createdById String
+  createdBy   User           @relation(fields: [createdById], references: [id])
+  source      QuestionSource
+  weight      Int            @default(1)
+  figureId    String?
+  figure      MaterialFigure? @relation(fields: [figureId], references: [id], onDelete: SetNull)
+  createdAt   DateTime       @default(now())
+
+  assignmentQuestions AssignmentQuestion[]
+}
+
+model Assignment {
+  id        String    @id @default(cuid())
+  title     String
+  classId   String
+  classRoom ClassRoom @relation(fields: [classId], references: [id])
+  dueDate   DateTime?
+  createdAt DateTime  @default(now())
+
+  questions   AssignmentQuestion[]
+  submissions Submission[]
+}
+
+model AssignmentQuestion {
+  id           String     @id @default(cuid())
+  assignmentId String
+  assignment   Assignment @relation(fields: [assignmentId], references: [id])
+  questionId   String
+  question     Question   @relation(fields: [questionId], references: [id])
+  order        Int
+}
+
+model Submission {
+  id           String         @id @default(cuid())
+  assignmentId String
+  assignment   Assignment     @relation(fields: [assignmentId], references: [id])
+  studentId    String
+  student      StudentProfile @relation(fields: [studentId], references: [id])
+  startedAt    DateTime       @default(now())
+  submittedAt  DateTime?
+  score        Float?
+
+  answers Answer[]
+}
+
+model Answer {
+  id           String     @id @default(cuid())
+  submissionId String
+  submission   Submission @relation(fields: [submissionId], references: [id])
+  questionId   String
+  answerText   String
+  isCorrect    Boolean?
+
+  @@unique([submissionId, questionId])
+}
+
+model LLMLog {
+  id           String       @id @default(cuid())
+  userId       String
+  provider     String
+  model        String
+  subject      String
+  grade        Int
+  topic        String
+  difficulty   String
+  questionType String
+  count        Int
+  status       LLMLogStatus
+  durationMs   Int
+  inputTokens  Int?
+  outputTokens Int?
+  errorMessage String?
+  createdAt    DateTime     @default(now())
+}
+
+// ─── RAG: Kurikulum Merdeka chunks (pgvector) ─────────────────
+// Requires: CREATE EXTENSION IF NOT EXISTS vector;
+
+model KurikulumChunk {
+  id         String   @id @default(cuid())
+  sourceFile String
+  subject    String
+  grade      Int?
+  phase      String?  // "Fase A" | "Fase B" | "Fase C"
+  chunkIndex Int
+  content    String
+  embedding  Unsupported("vector(1536)")?
+  createdAt  DateTime @default(now())
+
+  @@index([subject, grade])
+}
+
+// ─── V2: User-uploaded materials (User-Driven RAG) ────────────
+
+model UserMaterial {
+  id            String         @id @default(cuid())
+  uploadedById  String
+  uploadedBy    User           @relation(fields: [uploadedById], references: [id])
+  fileName      String
+  fileUrl       String
+  mimeType      String
+  contentHash   String?        @unique // SHA-256 isi file — cegah duplikat lintas user
+  extractedText String?
+  subject       String?
+  grade         Int?
+  status        MaterialStatus @default(PROCESSING)
+  createdAt     DateTime       @default(now())
+
+  chunks  MaterialChunk[]
+  figures MaterialFigure[]
+}
+
+/// Crop/region gambar dari materi (Level 2: render halaman + crop)
+model MaterialFigure {
+  id         String       @id @default(cuid())
+  materialId String
+  material   UserMaterial @relation(fields: [materialId], references: [id], onDelete: Cascade)
+  pageNumber Int
+  /// { x, y, width, height } dalam koordinat piksel halaman sumber
+  bboxJson   Json
+  fileUrl    String
+  width      Int
+  height     Int
+  nearbyText String?
+  areaRatio  Float        @default(0)
+  createdAt  DateTime     @default(now())
+
+  questions Question[]
+
+  @@index([materialId])
+}
+
+model MaterialChunk {
+  id         String       @id @default(cuid())
+  materialId String
+  material   UserMaterial @relation(fields: [materialId], references: [id], onDelete: Cascade)
+  chunkIndex Int
+  content    String
+  embedding  Unsupported("vector(1536)")?
+  createdAt  DateTime     @default(now())
+
+  @@index([materialId])
+}

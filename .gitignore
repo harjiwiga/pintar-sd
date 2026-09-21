@@ -1,43 +1,77 @@
-# Dependencies
+# ── Dependencies ─────────────────────────────────────────────
 node_modules/
 .pnp
 .pnp.js
+.yarn/
+.yarn/install-state.gz
 
-# Next.js
+# ── Next.js / build ──────────────────────────────────────────
 .next/
 out/
 build/
+dist/
 
-# Environment files — JANGAN di-commit!
+# ── Environment & secrets (JANGAN di-commit) ─────────────────
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*
+!.env.example
+*.pem
+*.key
+credentials.json
+service-account*.json
 
-# Prisma
-prisma/migrations/
-
-# Debug
+# ── Debug / logs ─────────────────────────────────────────────
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
+bun-debug.log*
+*.log
 
-# Vercel
+# ── Vercel / hosting ─────────────────────────────────────────
 .vercel
 
-# TypeScript
+# ── TypeScript ───────────────────────────────────────────────
 *.tsbuildinfo
+# next-env.d.ts digenerate Next; boleh di-ignore agar tidak bentrok lokal
 next-env.d.ts
 
-# Testing
+# ── Testing ──────────────────────────────────────────────────
 /coverage
 /playwright-report
 /test-results
+/blob-report
+/playwright/.cache/
+/playwright/.auth/
 
-# OS
+# ── OS / editor ──────────────────────────────────────────────
 .DS_Store
 Thumbs.db
+Desktop.ini
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json.example
 
-# Uploads pengguna
+# ── Uploads pengguna (materi PDF, figure crop, dll.) ─────────
 /uploads
+/uploads/**
+
+# ── Tesseract OCR language packs (besar, diunduh runtime) ────
+*.traineddata
+
+# ── Serwist / PWA (dihasilkan saat `next build`) ─────────────
+public/sw.js
+public/sw.js.map
+public/swe-worker*
+public/sw*
+
+# ── Misc lokal ───────────────────────────────────────────────
+*.local
+!.env.example
+.turbo
+.cache/
+tmp/
+temp/
+*.sqlite
+*.sqlite-journal

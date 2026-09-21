@@ -22,19 +22,21 @@ export function resolveComposition(input: GenerateQuestionsInput): QuestionCompo
   let shortAnswerCount = 0;
   let essayCount = 0;
 
+  const count = input.count ?? 0;
+
   if (hasDetail) {
     multipleChoiceCount = Math.max(0, input.multipleChoiceCount ?? 0);
     shortAnswerCount = Math.max(0, input.shortAnswerCount ?? 0);
     essayCount = Math.max(0, input.essayCount ?? 0);
   } else if (input.questionType === "SHORT_ANSWER") {
-    shortAnswerCount = input.count;
+    shortAnswerCount = count;
   } else if (input.questionType === "ESSAY") {
-    essayCount = input.count;
+    essayCount = count;
   } else if (input.questionType === "MIXED") {
-    multipleChoiceCount = Math.ceil(input.count * 0.6);
-    essayCount = input.count - multipleChoiceCount;
+    multipleChoiceCount = Math.ceil(count * 0.6);
+    essayCount = count - multipleChoiceCount;
   } else {
-    multipleChoiceCount = input.count;
+    multipleChoiceCount = count;
   }
 
   const total = multipleChoiceCount + shortAnswerCount + essayCount;
@@ -49,7 +51,7 @@ export function resolveComposition(input: GenerateQuestionsInput): QuestionCompo
     multipleChoiceWeight: Math.max(1, input.multipleChoiceWeight ?? 2),
     shortAnswerWeight: Math.max(1, input.shortAnswerWeight ?? 3),
     essayWeight: Math.max(1, input.essayWeight ?? 5),
-    total: total || input.count,
+    total: total || count,
     questionType,
   };
 }

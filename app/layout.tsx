@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans, Nunito } from "next/font/google";
 import { Providers } from "@/components/providers";
 import "./globals.css";
@@ -14,8 +14,25 @@ const nunito = Nunito({
 });
 
 export const metadata: Metadata = {
-  title: "SoalPintar SD",
-  description: "Buat soal latihan SD dengan AI, sesuai Kurikulum Merdeka.",
+  applicationName: "SoalPintar SD",
+  title: {
+    default: "SoalPintar SD",
+    template: "%s · SoalPintar SD",
+  },
+  description: "Buat soal latihan SD dengan AI, sesuai Kurikulum Merdeka. Latihan pribadi bisa offline.",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "SoalPintar",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  manifest: "/manifest.webmanifest",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0f766e",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

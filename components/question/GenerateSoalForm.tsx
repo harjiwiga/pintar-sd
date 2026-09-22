@@ -346,6 +346,12 @@ export function GenerateSoalForm({
                 </option>
               ))}
             </select>
+            {subjects.length === 0 ? (
+              <p className="mt-2 text-xs text-amber-800">
+                Daftar mapel/bab kosong. Di server production jalankan seed database (`npm run prisma:seed`), lalu muat ulang
+                halaman.
+              </p>
+            ) : null}
           </label>
           <label className="field">
             <span className="field-label">Kelas</span>
@@ -415,6 +421,11 @@ export function GenerateSoalForm({
                   </option>
                 ))}
               </select>
+              {form.subject && filteredTopics.length === 0 ? (
+                <p className="mt-2 text-xs text-amber-800">
+                  Belum ada bab untuk {form.subject} kelas {form.grade}. Jalankan seed DB atau pilih kelas lain.
+                </p>
+              ) : null}
             </label>
           ) : (
             <>

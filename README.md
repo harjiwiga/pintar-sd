@@ -63,9 +63,12 @@ Edit `.env.local` minimal:
 
 ```bash
 docker compose up -d
-npx prisma db push
+npx prisma migrate deploy
+# atau development pertama kali: npx prisma db push
 npm run prisma:seed
 ```
+
+> **Production (Railway, dll.):** `npm start` menjalankan `prisma migrate deploy` otomatis agar kolom seperti `UserMaterial.contentHash` ikut terbuat. Pastikan folder `prisma/migrations/` ikut ter-push ke Git.
 
 Seed mengisi mata pelajaran & topik SD.
 
